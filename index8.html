@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyCode - Coding Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            --sidebar-width: 300px;
+            --header-height: 60px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f1f5f9;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: white;
+            height: var(--header-height);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo i {
+            color: var(--secondary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-pic {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            margin-top: var(--header-height);
+            min-height: calc(100vh - var(--header-height));
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: white;
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            bottom: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-section h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .problem-list {
+            list-style: none;
+        }
+
+        .problem-item {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .problem-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        .problem-item.active {
+            background-color: #dbeafe;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .difficulty {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .difficulty.easy {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .difficulty.medium {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .difficulty.hard {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .problem-title {
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+
+        .problem-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        /* Content Area */
+        .content-area {
+            display: flex;
+            gap: 2rem;
+            flex: 1;
+        }
+
+        .problem-description {
+            flex: 1;
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .problem-description h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .problem-description h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.8rem 0;
+            color: var(--dark);
+        }
+
+        .problem-description p {
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            color: var(--gray);
+        }
+
+        .example {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .example h4 {
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        /* Code Editor */
+        .code-editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .editor-header {
+            background-color: var(--dark);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .language-selector select {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #0da271;
+        }
+
+        .code-editor {
+            flex: 1;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 1rem;
+            background-color: #1e293b;
+            color: #e2e8f0;
+            overflow: auto;
+            white-space: pre;
+            tab-size: 4;
+        }
+
+        /* Test Cases */
+        .test-cases {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-cases-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .test-case {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .test-case-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .test-case-content {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        /* Mobile Toggle */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .content-area {
+                flex-direction: column;
+            }
+            
+            .problem-description, .code-editor-container {
+                max-height: 50vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 90;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .problem-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Tab Styles */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Submission Result */
+        .submission-result {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .result-icon.success {
+            background-color: var(--secondary);
+        }
+
+        .result-icon.error {
+            background-color: var(--danger);
+        }
+
+        .result-icon.warning {
+            background-color: var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <div class="logo">
+            <i class="fas fa-code"></i>
+            <span>EasyCode</span>
+        </div>
+        
+        <div class="user-info">
+            <div class="user-pic">JS</div>
+            <span>John Smith</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <h3>Problems</h3>
+                <ul class="problem-list" id="problemList">
+                    <!-- Problem items will be added here by JavaScript -->
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>Topics</h3>
+                <div class="topics-list">
+                    <div class="problem-item">
+                        <span>Arrays</span>
+                        <span class="count">12</span>
+                    </div>
+                    <div class="problem-item">
+                        <span>Strings</span>
+                        <span class="count">8</span>
+                    </div>
+                    <div class="problem-item">
+                        <span>Linked Lists</span>
+                        <span class="count">5</span>
+                    </div>
+                    <div class="problem-item">
+                        <span>Dynamic Programming</span>
+                        <span class="count">10</span>
+                    </div>
+                    <div class="problem-item">
+                        <span>Trees</span>
+                        <span class="count">7</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>Difficulty</h3>
+                <div class="difficulty-list">
+                    <div class="problem-item">
+                        <span>Easy</span>
+                        <span class="count">25</span>
+                    </div>
+                    <div class="problem-item">
+                        <span>Medium</span>
+                        <span class="count">15</span>
+                    </div>
+                    <div class="problem-item">
+                        <span>Hard</span>
+                        <span class="count">5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <div>
+                    <h1 class="problem-title" id="problemTitle">Two Sum</h1>
+                    <div class="difficulty easy" id="problemDifficulty">Easy</div>
+                </div>
+                
+                <div class="problem-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="acceptanceRate">47.8%</div>
+                        <div class="stat-label">Acceptance</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="submissionCount">2.4M</div>
+                        <div class="stat-label">Submissions</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="likesCount">12.5K</div>
+                        <div class="stat-label">Likes</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-area">
+                <div class="problem-description">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="description">Description</div>
+                        <div class="tab" data-tab="solutions">Solutions</div>
+                        <div class="tab" data-tab="submissions">Submissions</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="description">
+                        <h2>Two Sum</h2>
+                        <p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to <code>target</code>.</p>
+                        <p>You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice.</p>
+                        <p>You can return the answer in any order.</p>
+                        
+                        <h3>Example 1:</h3>
+                        <div class="example">
+                            <h4>Input:</h4>
+                            <p>nums = [2,7,11,15], target = 9</p>
+                            <h4>Output:</h4>
+                            <p>[0,1]</p>
+                            <h4>Explanation:</h4>
+                            <p>Because nums[0] + nums[1] == 9, we return [0, 1].</p>
+                        </div>
+                        
+                        <h3>Example 2:</h3>
+                        <div class="example">
+                            <h4>Input:</h4>
+                            <p>nums = [3,2,4], target = 6</p>
+                            <h4>Output:</h4>
+                            <p>[1,2]</p>
+                        </div>
+                        
+                        <h3>Constraints:</h3>
+                        <ul>
+                            <li>2 <= nums.length <= 10<sup>4</sup></li>
+                            <li>-10<sup>9</sup> <= nums[i] <= 10<sup>9</sup></li>
+                            <li>-10<sup>9</sup> <= target <= 10<sup>9</sup></li>
+                            <li><strong>Only one valid answer exists.</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="solutions">
+                        <h2>Solutions</h2>
+                        <p>Different approaches to solve the Two Sum problem:</p>
+                        <h3>1. Brute Force Approach</h3>
+                        <p>Time Complexity: O(n²)</p>
+                        <p>Space Complexity: O(1)</p>
+                        
+                        <h3>2. Hash Map Approach</h3>
+                        <p>Time Complexity: O(n)</p>
+                        <p>Space Complexity: O(n)</p>
+                    </div>
+                    
+                    <div class="tab-content" id="submissions">
+                        <h2>Submissions</h2>
+                        <p>Your previous submissions will appear here.</p>
+                    </div>
+                </div>
+                
+                <div class="code-editor-container">
+                    <div class="editor-header">
+                        <div class="language-selector">
+                            <select id="languageSelect">
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                                <option value="cpp">C++</option>
+                            </select>
+                        </div>
+                        
+                        <div class="editor-actions">
+                            <button class="btn btn-secondary" id="resetBtn">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                            <button class="btn btn-primary" id="runBtn">
+                                <i class="fas fa-play"></i> Run
+                            </button>
+                            <button class="btn btn-success" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i> Submit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="code-editor" id="codeEditor" contenteditable="true">function twoSum(nums, target) {
+    const map = new Map();
+    
+    for (let i = 0; i < nums.length; i++) {
+        const complement = target - nums[i];
+        
+        if (map.has(complement)) {
+            return [map.get(complement), i];
+        }
+        
+        map.set(nums[i], i);
+    }
+    
+    return [];
+}</div>
+                </div>
+            </div>
+            
+            <div class="test-cases">
+                <div class="test-cases-header">
+                    <h3>Test Cases</h3>
+                    <button class="btn btn-secondary" id="addTestCaseBtn">
+                        <i class="fas fa-plus"></i> Add Test Case
+                    </button>
+                </div>
+                
+                <div class="test-case">
+                    <div class="test-case-title">Test Case 1</div>
+                    <div class="test-case-content">
+                        nums = [2,7,11,15]<br>
+                        target = 9<br>
+                        Expected Output: [0,1]
+                    </div>
+                </div>
+                
+                <div class="test-case">
+                    <div class="test-case-title">Test Case 2</div>
+                    <div class="test-case-content">
+                        nums = [3,2,4]<br>
+                        target = 6<br>
+                        Expected Output: [1,2]
+                    </div>
+                </div>
+            </div>
+            
+            <div class="submission-result" id="submissionResult">
+                <div class="result-header">
+                    <div class="result-icon success" id="resultIcon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h3 id="resultTitle">Submission Accepted</h3>
+                </div>
+                <div id="resultDetails">
+                    <p><strong>Runtime:</strong> 68 ms (beats 85.4% of submissions)</p>
+                    <p><strong>Memory Usage:</strong> 42.5 MB (beats 72.1% of submissions)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="copyright">
+                &copy; 2023 EasyCode Platform. All rights reserved.
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Us</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sample problems data
+        const problems = [
+            { id: 1, title: "Two Sum", difficulty: "easy", acceptance: "47.8%", submissions: "2.4M", likes: "12.5K" },
+            { id: 2, title: "Add Two Numbers", difficulty: "medium", acceptance: "38.5%", submissions: "1.8M", likes: "9.2K" },
+            { id: 3, title: "Longest Substring Without Repeating Characters", difficulty: "medium", acceptance: "33.2%", submissions: "1.5M", likes: "8.7K" },
+            { id: 4, title: "Median of Two Sorted Arrays", difficulty: "hard", acceptance: "31.5%", submissions: "1.2M", likes: "6.5K" },
+            { id: 5, title: "Reverse Integer", difficulty: "easy", acceptance: "52.1%", submissions: "1.9M", likes: "7.4K" },
+            { id: 6, title: "Palindrome Number", difficulty: "easy", acceptance: "55.3%", submissions: "2.1M", likes: "8.9K" },
+            { id: 7, title: "Regular Expression Matching", difficulty: "hard", acceptance: "27.4%", submissions: "0.9M", likes: "5.2K" },
+            { id: 8, title: "Container With Most Water", difficulty: "medium", acceptance: "42.6%", submissions: "1.3M", likes: "7.8K" }
+        ];
+
+        // DOM Elements
+        const problemList = document.getElementById('problemList');
+        const problemTitle = document.getElementById('problemTitle');
+        const problemDifficulty = document.getElementById('problemDifficulty');
+        const acceptanceRate = document.getElementById('acceptanceRate');
+        const submissionCount = document.getElementById('submissionCount');
+        const likesCount = document.getElementById('likesCount');
+        const codeEditor = document.getElementById('codeEditor');
+        const languageSelect = document.getElementById('languageSelect');
+        const resetBtn = document.getElementById('resetBtn');
+        const runBtn = document.getElementById('runBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const addTestCaseBtn = document.getElementById('addTestCaseBtn');
+        const submissionResult = document.getElementById('submissionResult');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDetails = document.getElementById('resultDetails');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Initialize problem list
+        function initializeProblemList() {
+            problemList.innerHTML = '';
+            
+            problems.forEach(problem => {
+                const problemItem = document.createElement('li');
+                problemItem.className = 'problem-item';
+                if (problem.id === 1) problemItem.classList.add('active');
+                
+                problemItem.innerHTML = `
+                    <span>${problem.title}</span>
+                    <span class="difficulty ${problem.difficulty}">${problem.difficulty.charAt(0).toUpperCase() + problem.difficulty.slice(1)}</span>
+                `;
+                
+                problemItem.addEventListener('click', () => {
+                    // Remove active class from all items
+                    document.querySelectorAll('.problem-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    problemItem.classList.add('active');
+                    
+                    // Update problem details
+                    updateProblemDetails(problem);
+                });
+                
+                problemList.appendChild(problemItem);
+            });
+        }
+
+        // Update problem details
+        function updateProblemDetails(problem) {
+            problemTitle.textContent = problem.title;
+            problemDifficulty.textContent = problem.difficulty.charAt(0).toUpperCase() + problem.difficulty.slice(1);
+            problemDifficulty.className = `difficulty ${problem.difficulty}`;
+            acceptanceRate.textContent = problem.acceptance;
+            submissionCount.textContent = problem.submissions;
+            likesCount.textContent = problem.likes;
+            
+            // Update code editor based on language
+            updateCodeEditor();
+        }
+
+        // Update code editor based on selected language
+        function updateCodeEditor() {
+            const language = languageSelect.value;
+            
+            switch(language) {
+                case 'python':
+                    codeEditor.textContent = `def twoSum(nums, target):
+    hash_map = {}
+    
+    for i, num in enumerate(nums):
+        complement = target - num
+        
+        if complement in hash_map:
+            return [hash_map[complement], i]
+        
+        hash_map[num] = i
+    
+    return []`;
+                    break;
+                    
+                case 'java':
+                    codeEditor.textContent = `class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> map = new HashMap<>();
+        
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            
+            if (map.containsKey(complement)) {
+                return new int[] { map.get(complement), i };
+            }
+            
+            map.put(nums[i], i);
+        }
+        
+        return new int[0];
+    }
+}`;
+                    break;
+                    
+                case 'cpp':
+                    codeEditor.textContent = `class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> map;
+        
+        for (int i = 0; i < nums.size(); i++) {
+            int complement = target - nums[i];
+            
+            if (map.find(complement) != map.end()) {
+                return {map[complement], i};
+            }
+            
+            map[nums[i]] = i;
+        }
+        
+        return {};
+    }
+};`;
+                    break;
+                    
+                default:
+                    // JavaScript (default)
+                    codeEditor.textContent = `function twoSum(nums, target) {
+    const map = new Map();
+    
+    for (let i = 0; i < nums.length; i++) {
+        const complement = target - nums[i];
+        
+        if (map.has(complement)) {
+            return [map.get(complement), i];
+        }
+        
+        map.set(nums[i], i);
+    }
+    
+    return [];
+}`;
+            }
+        }
+
+        // Show submission result
+        function showSubmissionResult(success, runtime, memory) {
+            if (success) {
+                resultIcon.className = 'result-icon success';
+                resultIcon.innerHTML = '<i class="fas fa-check"></i>';
+                resultTitle.textContent = 'Submission Accepted';
+                resultDetails.innerHTML = `
+                    <p><strong>Runtime:</strong> ${runtime} ms (beats ${Math.floor(Math.random() * 30) + 70}% of submissions)</p>
+                    <p><strong>Memory Usage:</strong> ${memory} MB (beats ${Math.floor(Math.random() * 30) + 60}% of submissions)</p>
+                `;
+            } else {
+                resultIcon.className = 'result-icon error';
+                resultIcon.innerHTML = '<i class="fas fa-times"></i>';
+                resultTitle.textContent = 'Wrong Answer';
+                resultDetails.innerHTML = `
+                    <p>Test case failed: Input [3,2,4], target 6</p>
+                    <p>Expected: [1,2]</p>
+                    <p>Your output: [0,2]</p>
+                `;
+            }
+            
+            submissionResult.style.display = 'block';
+            
+            // Scroll to result
+            submissionResult.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Tab switching functionality
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show active tab content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Event Listeners
+        languageSelect.addEventListener('change', updateCodeEditor);
+        
+        resetBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset the code editor? All changes will be lost.')) {
+                updateCodeEditor();
+            }
+        });
+        
+        runBtn.addEventListener('click', () => {
+            // Simulate running code
+            const runTime = Math.floor(Math.random() * 100) + 20;
+            const memory = (Math.random() * 10 + 40).toFixed(1);
+            showSubmissionResult(true, runTime, memory);
+        });
+        
+        submitBtn.addEventListener('click', () => {
+            // Simulate submitting code with random result
+            const success = Math.random() > 0.3;
+            const runTime = Math.floor(Math.random() * 100) + 20;
+            const memory = (Math.random() * 10 + 40).toFixed(1);
+            showSubmissionResult(success, runTime, memory);
+        });
+        
+        addTestCaseBtn.addEventListener('click', () => {
+            const testCasesContainer = document.querySelector('.test-cases');
+            const testCaseCount = document.querySelectorAll('.test-case').length + 1;
+            
+            const newTestCase = document.createElement('div');
+            newTestCase.className = 'test-case';
+            newTestCase.innerHTML = `
+                <div class="test-case-title">Test Case ${testCaseCount}</div>
+                <div class="test-case-content">
+                    nums = [${Array.from({length: 4}, () => Math.floor(Math.random() * 20)).join(',')}]<br>
+                    target = ${Math.floor(Math.random() * 30) + 10}<br>
+                    Expected Output: [${Math.floor(Math.random() * 3)},${Math.floor(Math.random() * 3)}]
+                </div>
+            `;
+            
+            testCasesContainer.insertBefore(newTestCase, addTestCaseBtn.parentNode.nextSibling);
+        });
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target) && 
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Initialize the app
+        initializeProblemList();
+        updateProblemDetails(problems[0]);
+    </script>
+</body>
+</html>
