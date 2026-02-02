@@ -1,0 +1,76 @@
+/* 1. CSS Variables for easy theme management */
+:root {
+  --primary-color: #3498db;
+  --text-dark: #2c3e50;
+  --bg-light: #f4f7f6;
+  --white: #ffffff;
+  --transition: all 0.3s ease;
+}
+
+/* 2. Basic Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* 3. Layout Classes */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 4. Flexbox Navigation */
+header {
+  background: var(--primary-color);
+  color: var(--white);
+  padding: 1rem 0;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+}
+
+nav ul li {
+  margin-left: 20px;
+}
+
+/* 5. Components (Cards) */
+.card {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: var(--transition);
+  margin-top: 2rem;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* 6. Responsive Design */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+  }
+  
+  nav ul {
+    margin-top: 1rem;
+  }
+}
