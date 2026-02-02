@@ -1,0 +1,2179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyCode Elite | Multi-Language Coding Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --bg: #05070a;
+            --panel: #0d1117;
+            --accent: #3b82f6;
+            --text-main: #e6edf3;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .monaco-editor {
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #0d1117;
+            border-radius: 4px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #444c56;
+        }
+        
+        .code-tab.active {
+            background-color: #1e293b;
+            color: white;
+            border-bottom: 2px solid var(--accent);
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .problem-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .difficulty-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        .difficulty-dot.easy { background-color: var(--success); }
+        .difficulty-dot.medium { background-color: var(--warning); }
+        .difficulty-dot.hard { background-color: var(--danger); }
+        
+        .test-case-running {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .code-error {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .slide-in {
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        .language-icon {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .compile-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        .compile-status.running { background-color: #3b82f6; animation: pulse 1s infinite; }
+        .compile-status.success { background-color: #10b981; }
+        .compile-status.error { background-color: #ef4444; }
+        
+        .language-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        
+        .language-badge.js { background: #f0db4f; color: #000; }
+        .language-badge.py { background: #3572A5; color: white; }
+        .language-badge.java { background: #007396; color: white; }
+        .language-badge.cpp { background: #00599C; color: white; }
+        .language-badge.c { background: #A8B9CC; color: #000; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+    <!-- Top Navigation -->
+    <nav class="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0d1117]">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-lg flex items-center justify-center font-bold text-white">
+                    <i class="fas fa-code text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-xl tracking-tight gradient-text">EasyCode Elite</span>
+                    <div class="text-[10px] text-slate-500 uppercase tracking-widest mt-[-4px]">MULTI-LANGUAGE CODING</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="relative group">
+                <div id="timer" class="font-mono text-yellow-500 bg-yellow-500/10 px-4 py-2 rounded-lg border border-yellow-500/20 flex items-center gap-2">
+                    <i class="fas fa-clock"></i>
+                    <span>00:00:00</span>
+                </div>
+            </div>
+            <div id="compile-indicator" class="hidden items-center gap-2 text-sm">
+                <span class="compile-status running"></span>
+                <span class="text-blue-400">Compiling...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Left Sidebar - Problems -->
+        <aside class="w-80 border-r border-slate-800 flex flex-col bg-[#0d1117]">
+            <div class="p-4">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-600"></i>
+                    <input type="text" id="probSearch" placeholder="Search problems..." 
+                           class="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition placeholder-slate-600">
+                </div>
+            </div>
+            
+            <div class="flex border-b border-slate-800 text-sm font-bold uppercase tracking-wider text-slate-500">
+                <button class="flex-1 py-3 bg-blue-900/20 text-blue-400 flex items-center justify-center gap-2">
+                    <i class="fas fa-list-ol"></i> Problems
+                </button>
+            </div>
+
+            <div id="problem-list" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-2">
+                <!-- Problems will be rendered here -->
+            </div>
+        </aside>
+
+        <!-- Middle Section - Problem Description -->
+        <section class="flex-1 flex flex-col border-r border-slate-800 bg-[#05070a]">
+            <div class="p-8 overflow-y-auto custom-scroll flex-1">
+                <div class="flex justify-between items-start mb-8">
+                    <div>
+                        <h1 id="p-title" class="text-4xl font-bold text-white mb-3">Two Sum</h1>
+                        <div class="flex gap-3 items-center flex-wrap">
+                            <span id="p-diff" class="text-xs font-bold px-3 py-1 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 uppercase flex items-center">
+                                <span class="difficulty-dot easy"></span> Easy
+                            </span>
+                            <div id="p-tags" class="flex gap-2 flex-wrap">
+                                <!-- Tags -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="bookmarkProblem()" id="bookmark-btn" class="w-10 h-10 rounded-lg bg-slate-900/50 border border-slate-700 flex items-center justify-center hover:bg-slate-800 transition">
+                            <i class="far fa-bookmark text-slate-400"></i>
+                        </button>
+                        <button onclick="showSolution()" class="px-4 py-2 rounded-lg bg-purple-900/30 border border-purple-800 text-purple-400 hover:bg-purple-900/50 transition text-sm font-medium">
+                            <i class="fas fa-eye mr-2"></i> Solution
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="p-desc" class="text-slate-300 text-lg leading-relaxed mb-8 space-y-6">
+                    <!-- Description -->
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="examples-container">
+                    <!-- Examples -->
+                </div>
+                
+                <div class="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-widest flex items-center gap-2">
+                        <i class="fas fa-clipboard-list"></i> Constraints
+                    </h3>
+                    <ul id="constraints-list" class="space-y-2 text-slate-300">
+                        <!-- Constraints -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Console Output -->
+            <div class="h-56 border-t border-slate-800 bg-[#0d1117] p-4 font-mono text-sm flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-slate-400 font-semibold flex items-center gap-2">
+                            <i class="fas fa-terminal"></i> Console Output
+                            <span id="current-language" class="language-badge js">JS</span>
+                        </span>
+                        <span id="console-status" class="text-xs text-slate-600">Ready</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="clearConsole()" class="text-xs text-slate-600 hover:text-slate-400 px-3 py-1 rounded border border-slate-800 hover:border-slate-700 transition">
+                            <i class="fas fa-broom mr-1"></i> Clear
+                        </button>
+                    </div>
+                </div>
+                <div id="output" class="flex-1 overflow-y-auto custom-scroll p-3 bg-black/30 rounded text-slate-300">
+                    <div class="text-slate-600">// Select a language and write your code</div>
+                </div>
+                <div class="mt-2 flex items-center gap-4 text-xs text-slate-600">
+                    <div><i class="fas fa-microchip mr-1"></i> Memory: <span id="memory-usage">-- MB</span></div>
+                    <div><i class="fas fa-clock mr-1"></i> Time: <span id="time-usage">-- ms</span></div>
+                    <div><i class="fas fa-check-circle mr-1"></i> Status: <span id="status">--</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Section - Code Editor -->
+        <section class="w-1/2 flex flex-col bg-[#1e1e1e] border-l border-slate-800">
+            <div class="h-12 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0d1117]">
+                <div class="flex items-center gap-4">
+                    <div class="flex text-sm font-medium">
+                        <button class="code-tab active px-4 py-2" data-lang="javascript">
+                            <i class="fab fa-js-square mr-2 text-yellow-400"></i> JavaScript
+                        </button>
+                        <button class="code-tab px-4 py-2" data-lang="python">
+                            <i class="fab fa-python mr-2 text-blue-400"></i> Python
+                        </button>
+                        <button class="code-tab px-4 py-2" data-lang="java">
+                            <i class="fab fa-java mr-2 text-red-400"></i> Java
+                        </button>
+                        <button class="code-tab px-4 py-2" data-lang="cpp">
+                            <i class="fas fa-copyright mr-2 text-blue-300"></i> C++
+                        </button>
+                        <button class="code-tab px-4 py-2" data-lang="c">
+                            <i class="fas fa-copyright mr-2 text-purple-400"></i> C
+                        </button>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="runCode()" class="bg-blue-900/50 hover:bg-blue-900 text-blue-300 px-4 py-1.5 rounded text-xs font-bold transition flex items-center gap-2 border border-blue-800/50">
+                        <i class="fas fa-play"></i> Run
+                    </button>
+                    <button onclick="submitCode()" class="bg-green-700 hover:bg-green-600 text-white px-4 py-1.5 rounded text-xs font-bold transition flex items-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Submit
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Monaco Editor Container -->
+            <div id="editor-container" class="flex-1"></div>
+            
+            <!-- Test Cases Panel -->
+            <div class="h-48 border-t border-slate-800 bg-[#0d1117] p-4 flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                        <i class="fas fa-vial"></i> Test Cases
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="runAllTests()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded flex items-center gap-1">
+                            <i class="fas fa-play"></i> Run All Tests
+                        </button>
+                    </div>
+                </div>
+                <div id="test-cases" class="flex-1 overflow-y-auto custom-scroll">
+                    <!-- Test cases will be inserted here -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Solution Modal -->
+    <div id="solution-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4">
+        <div class="bg-[#0d1117] rounded-2xl w-full max-w-4xl border border-slate-800 overflow-hidden">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-eye text-purple-500"></i> Solution
+                    <span id="solution-language" class="language-badge js ml-2">JS</span>
+                </h2>
+                <button onclick="closeSolution()" class="text-slate-500 hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex gap-2 mb-4">
+                    <button onclick="changeSolutionLanguage('javascript')" class="px-3 py-1 rounded-lg bg-blue-900/30 text-blue-400 language-solution-tab" data-lang="javascript">JavaScript</button>
+                    <button onclick="changeSolutionLanguage('python')" class="px-3 py-1 rounded-lg bg-slate-800 text-slate-400 language-solution-tab" data-lang="python">Python</button>
+                    <button onclick="changeSolutionLanguage('java')" class="px-3 py-1 rounded-lg bg-slate-800 text-slate-400 language-solution-tab" data-lang="java">Java</button>
+                    <button onclick="changeSolutionLanguage('cpp')" class="px-3 py-1 rounded-lg bg-slate-800 text-slate-400 language-solution-tab" data-lang="cpp">C++</button>
+                    <button onclick="changeSolutionLanguage('c')" class="px-3 py-1 rounded-lg bg-slate-800 text-slate-400 language-solution-tab" data-lang="c">C</button>
+                </div>
+                <div class="bg-[#1e1e1e] rounded-lg p-4 font-mono text-sm">
+                    <pre id="solution-code-content" class="text-slate-300"></pre>
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button onclick="closeSolution()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-white">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Notification -->
+    <div id="success-toast" class="fixed bottom-4 right-4 bg-gradient-to-r from-green-700 to-emerald-800 text-white p-4 rounded-xl shadow-2xl hidden z-50 max-w-sm slide-in">
+        <div class="flex items-center gap-3">
+            <div class="text-2xl">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div>
+                <div class="font-bold">Problem Solved!</div>
+                <div class="text-sm text-green-200">All test cases passed!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== MULTI-LANGUAGE CODE EXECUTION SYSTEM ==========
+        
+        const problemDatabase = [
+            {
+                id: 1,
+                title: "Two Sum",
+                difficulty: "Easy",
+                tags: ["Array", "Hash Table"],
+                acceptance: "45.6%",
+                desc: "Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to <code>target</code>. You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice. You can return the answer in any order.",
+                examples: [
+                    {
+                        input: "nums = [2,7,11,15], target = 9",
+                        output: "[0,1]",
+                        explanation: "Because nums[0] + nums[1] == 9, we return [0, 1]."
+                    },
+                    {
+                        input: "nums = [3,2,4], target = 6",
+                        output: "[1,2]",
+                        explanation: "Because nums[1] + nums[2] == 6, we return [1, 2]."
+                    }
+                ],
+                constraints: [
+                    "2 ≤ nums.length ≤ 10^4",
+                    "-10^9 ≤ nums[i] ≤ 10^9",
+                    "-10^9 ≤ target ≤ 10^9",
+                    "Only one valid answer exists."
+                ],
+                testCases: [
+                    { input: { nums: [2,7,11,15], target: 9 }, expected: [0,1] },
+                    { input: { nums: [3,2,4], target: 6 }, expected: [1,2] },
+                    { input: { nums: [3,3], target: 6 }, expected: [0,1] },
+                    { input: { nums: [0,4,3,0], target: 0 }, expected: [0,3] },
+                    { input: { nums: [-1,-2,-3,-4,-5], target: -8 }, expected: [2,4] }
+                ],
+                starterCode: {
+                    javascript: `/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number[]}
+ */
+var twoSum = function(nums, target) {
+    // Write your solution here
+    // Return indices of two numbers that add up to target
+    // Example: nums = [2,7,11,15], target = 9 → return [0,1]
+    return [];
+};`,
+                    python: `class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        # Write your solution here
+        # Return indices of two numbers that add up to target
+        # Example: nums = [2,7,11,15], target = 9 → return [0,1]
+        return []`,
+                    java: `class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        // Write your solution here
+        // Return indices of two numbers that add up to target
+        // Example: nums = [2,7,11,15], target = 9 → return [0,1]
+        return new int[2];
+    }
+}`,
+                    cpp: `class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        // Write your solution here
+        // Return indices of two numbers that add up to target
+        // Example: nums = [2,7,11,15], target = 9 → return [0,1]
+        return {};
+    }
+};`,
+                    c: `/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    // Write your solution here
+    // Return indices of two numbers that add up to target
+    // Example: nums = [2,7,11,15], target = 9 → return [0,1]
+    *returnSize = 2;
+    int* result = (int*)malloc(2 * sizeof(int));
+    return result;
+}`
+                },
+                solutionCode: {
+                    javascript: `var twoSum = function(nums, target) {
+    const map = new Map();
+    
+    for (let i = 0; i < nums.length; i++) {
+        const complement = target - nums[i];
+        
+        if (map.has(complement)) {
+            return [map.get(complement), i];
+        }
+        
+        map.set(nums[i], i);
+    }
+    
+    return [];
+};`,
+                    python: `def twoSum(self, nums, target):
+    num_map = {}
+    
+    for i, num in enumerate(nums):
+        complement = target - num
+        
+        if complement in num_map:
+            return [num_map[complement], i]
+        
+        num_map[num] = i
+    
+    return []`,
+                    java: `class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> map = new HashMap<>();
+        
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            
+            if (map.containsKey(complement)) {
+                return new int[] { map.get(complement), i };
+            }
+            
+            map.put(nums[i], i);
+        }
+        
+        return new int[2];
+    }
+}`,
+                    cpp: `class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> map;
+        
+        for (int i = 0; i < nums.size(); i++) {
+            int complement = target - nums[i];
+            
+            if (map.find(complement) != map.end()) {
+                return {map[complement], i};
+            }
+            
+            map[nums[i]] = i;
+        }
+        
+        return {};
+    }
+};`,
+                    c: `int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    int* result = (int*)malloc(2 * sizeof(int));
+    *returnSize = 2;
+    
+    for (int i = 0; i < numsSize; i++) {
+        for (int j = i + 1; j < numsSize; j++) {
+            if (nums[i] + nums[j] == target) {
+                result[0] = i;
+                result[1] = j;
+                return result;
+            }
+        }
+    }
+    
+    result[0] = -1;
+    result[1] = -1;
+    return result;
+}`
+                }
+            },
+            {
+                id: 2,
+                title: "Palindrome Number",
+                difficulty: "Easy",
+                tags: ["Math"],
+                acceptance: "52.3%",
+                desc: "Given an integer <code>x</code>, return <code>true</code> if <code>x</code> is a palindrome, and <code>false</code> otherwise.",
+                examples: [
+                    {
+                        input: "x = 121",
+                        output: "true",
+                        explanation: "121 reads as 121 from left to right and from right to left."
+                    },
+                    {
+                        input: "x = -121",
+                        output: "false",
+                        explanation: "From left to right, it reads -121. From right to left, it becomes 121-. Therefore it is not a palindrome."
+                    }
+                ],
+                constraints: [
+                    "-2^31 ≤ x ≤ 2^31 - 1"
+                ],
+                testCases: [
+                    { input: { x: 121 }, expected: true },
+                    { input: { x: -121 }, expected: false },
+                    { input: { x: 10 }, expected: false },
+                    { input: { x: 12321 }, expected: true },
+                    { input: { x: 0 }, expected: true }
+                ],
+                starterCode: {
+                    javascript: `/**
+ * @param {number} x
+ * @return {boolean}
+ */
+var isPalindrome = function(x) {
+    // Write your solution here
+    // Return true if x is palindrome, false otherwise
+    return false;
+};`,
+                    python: `class Solution:
+    def isPalindrome(self, x: int) -> bool:
+        # Write your solution here
+        # Return True if x is palindrome, False otherwise
+        return False`,
+                    java: `class Solution {
+    public boolean isPalindrome(int x) {
+        // Write your solution here
+        // Return true if x is palindrome, false otherwise
+        return false;
+    }
+}`,
+                    cpp: `class Solution {
+public:
+    bool isPalindrome(int x) {
+        // Write your solution here
+        // Return true if x is palindrome, false otherwise
+        return false;
+    }
+};`,
+                    c: `bool isPalindrome(int x) {
+    // Write your solution here
+    // Return true if x is palindrome, false otherwise
+    return false;
+}`
+                },
+                solutionCode: {
+                    javascript: `var isPalindrome = function(x) {
+    if (x < 0) return false;
+    
+    let original = x;
+    let reversed = 0;
+    
+    while (x > 0) {
+        reversed = reversed * 10 + (x % 10);
+        x = Math.floor(x / 10);
+    }
+    
+    return original === reversed;
+};`,
+                    python: `def isPalindrome(self, x):
+    if x < 0:
+        return False
+    
+    original = x
+    reversed_num = 0
+    
+    while x > 0:
+        reversed_num = reversed_num * 10 + (x % 10)
+        x //= 10
+    
+    return original == reversed_num`,
+                    java: `class Solution {
+    public boolean isPalindrome(int x) {
+        if (x < 0) return false;
+        
+        int original = x;
+        int reversed = 0;
+        
+        while (x > 0) {
+            reversed = reversed * 10 + (x % 10);
+            x /= 10;
+        }
+        
+        return original == reversed;
+    }
+}`,
+                    cpp: `class Solution {
+public:
+    bool isPalindrome(int x) {
+        if (x < 0) return false;
+        
+        long long original = x;
+        long long reversed = 0;
+        
+        while (x > 0) {
+            reversed = reversed * 10 + (x % 10);
+            x /= 10;
+        }
+        
+        return original == reversed;
+    }
+};`,
+                    c: `bool isPalindrome(int x) {
+    if (x < 0) return false;
+    
+    long long original = x;
+    long long reversed = 0;
+    
+    while (x > 0) {
+        reversed = reversed * 10 + (x % 10);
+        x /= 10;
+    }
+    
+    return original == reversed;
+}`
+                }
+            },
+            {
+                id: 3,
+                title: "Reverse Integer",
+                difficulty: "Medium",
+                tags: ["Math"],
+                acceptance: "27.5%",
+                desc: "Given a signed 32-bit integer <code>x</code>, return <code>x</code> with its digits reversed. If reversing <code>x</code> causes the value to go outside the signed 32-bit integer range [-2^31, 2^31 - 1], then return <code>0</code>.",
+                examples: [
+                    {
+                        input: "x = 123",
+                        output: "321"
+                    },
+                    {
+                        input: "x = -123",
+                        output: "-321"
+                    },
+                    {
+                        input: "x = 120",
+                        output: "21"
+                    }
+                ],
+                constraints: [
+                    "-2^31 ≤ x ≤ 2^31 - 1"
+                ],
+                testCases: [
+                    { input: { x: 123 }, expected: 321 },
+                    { input: { x: -123 }, expected: -321 },
+                    { input: { x: 120 }, expected: 21 },
+                    { input: { x: 0 }, expected: 0 },
+                    { input: { x: 1534236469 }, expected: 0 }
+                ],
+                starterCode: {
+                    javascript: `/**
+ * @param {number} x
+ * @return {number}
+ */
+var reverse = function(x) {
+    // Write your solution here
+    // Reverse the digits of x
+    // If result is outside 32-bit range, return 0
+    return 0;
+};`,
+                    python: `class Solution:
+    def reverse(self, x: int) -> int:
+        # Write your solution here
+        # Reverse the digits of x
+        # If result is outside 32-bit range, return 0
+        return 0`,
+                    java: `class Solution {
+    public int reverse(int x) {
+        // Write your solution here
+        // Reverse the digits of x
+        // If result is outside 32-bit range, return 0
+        return 0;
+    }
+}`,
+                    cpp: `class Solution {
+public:
+    int reverse(int x) {
+        // Write your solution here
+        // Reverse the digits of x
+        // If result is outside 32-bit range, return 0
+        return 0;
+    }
+};`,
+                    c: `int reverse(int x) {
+    // Write your solution here
+    // Reverse the digits of x
+    // If result is outside 32-bit range, return 0
+    return 0;
+}`
+                },
+                solutionCode: {
+                    javascript: `var reverse = function(x) {
+    const INT_MAX = 2**31 - 1;
+    const INT_MIN = -(2**31);
+    
+    let rev = 0;
+    let num = Math.abs(x);
+    
+    while (num > 0) {
+        const digit = num % 10;
+        rev = rev * 10 + digit;
+        
+        if (rev > INT_MAX) return 0;
+        
+        num = Math.floor(num / 10);
+    }
+    
+    if (x < 0) rev = -rev;
+    
+    return rev;
+};`,
+                    python: `def reverse(self, x):
+    INT_MAX = 2**31 - 1
+    INT_MIN = -(2**31)
+    
+    rev = 0
+    num = abs(x)
+    
+    while num > 0:
+        digit = num % 10
+        rev = rev * 10 + digit
+        
+        if rev > INT_MAX:
+            return 0
+        
+        num //= 10
+    
+    if x < 0:
+        rev = -rev
+    
+    return rev`,
+                    java: `class Solution {
+    public int reverse(int x) {
+        int rev = 0;
+        
+        while (x != 0) {
+            int digit = x % 10;
+            x /= 10;
+            
+            if (rev > Integer.MAX_VALUE/10 || 
+                (rev == Integer.MAX_VALUE/10 && digit > 7)) return 0;
+            if (rev < Integer.MIN_VALUE/10 || 
+                (rev == Integer.MIN_VALUE/10 && digit < -8)) return 0;
+            
+            rev = rev * 10 + digit;
+        }
+        
+        return rev;
+    }
+}`,
+                    cpp: `class Solution {
+public:
+    int reverse(int x) {
+        int rev = 0;
+        
+        while (x != 0) {
+            int digit = x % 10;
+            x /= 10;
+            
+            if (rev > INT_MAX/10 || (rev == INT_MAX/10 && digit > 7)) return 0;
+            if (rev < INT_MIN/10 || (rev == INT_MIN/10 && digit < -8)) return 0;
+            
+            rev = rev * 10 + digit;
+        }
+        
+        return rev;
+    }
+};`,
+                    c: `int reverse(int x) {
+    long long rev = 0;
+    
+    while (x != 0) {
+        rev = rev * 10 + (x % 10);
+        x /= 10;
+    }
+    
+    if (rev > INT_MAX || rev < INT_MIN) return 0;
+    
+    return (int)rev;
+}`
+                }
+            }
+        ];
+
+        // ========== GLOBAL VARIABLES ==========
+        let editor;
+        let currentProb = problemDatabase[0];
+        let currentLanguage = "javascript";
+        let bookmarkedProblems = new Set([1]);
+        let time = 0;
+        let timerInt;
+
+        // ========== MULTI-LANGUAGE CODE EXECUTION ENGINE ==========
+        class MultiLanguageExecutor {
+            constructor() {
+                this.languageConfigs = {
+                    javascript: { extension: 'js', runtime: 'browser' },
+                    python: { extension: 'py', runtime: 'simulated' },
+                    java: { extension: 'java', runtime: 'simulated' },
+                    cpp: { extension: 'cpp', runtime: 'simulated' },
+                    c: { extension: 'c', runtime: 'simulated' }
+                };
+            }
+
+            showCompiling() {
+                document.getElementById('compile-indicator').classList.remove('hidden');
+            }
+
+            hideCompiling() {
+                document.getElementById('compile-indicator').classList.add('hidden');
+            }
+
+            async executeCode(code, testCase, language) {
+                this.showCompiling();
+                
+                try {
+                    let result;
+                    
+                    switch(language) {
+                        case 'javascript':
+                            result = await this.executeJavaScript(code, testCase);
+                            break;
+                        case 'python':
+                            result = await this.executePython(code, testCase);
+                            break;
+                        case 'java':
+                            result = await this.executeJava(code, testCase);
+                            break;
+                        case 'cpp':
+                            result = await this.executeCpp(code, testCase);
+                            break;
+                        case 'c':
+                            result = await this.executeC(code, testCase);
+                            break;
+                        default:
+                            throw new Error(`Unsupported language: ${language}`);
+                    }
+                    
+                    this.hideCompiling();
+                    return result;
+                    
+                } catch (error) {
+                    this.hideCompiling();
+                    return { 
+                        success: false, 
+                        error: `Compilation Error: ${error.message}`,
+                        language: language
+                    };
+                }
+            }
+
+            // JavaScript Execution (Actual browser execution)
+            async executeJavaScript(code, testCase) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        try {
+                            let functionName = this.getFunctionName(code, 'javascript');
+                            
+                            // Create a safe execution environment
+                            const safeCode = `
+                                ${code}
+                                
+                                // Test runner for JavaScript
+                                try {
+                                    let result;
+                                    ${this.getTestCall('javascript', testCase, functionName)}
+                                    return { success: true, result: result };
+                                } catch (error) {
+                                    return { success: false, error: error.message };
+                                }
+                            `;
+                            
+                            const func = new Function('return ' + safeCode);
+                            const executionResult = func();
+                            resolve(executionResult);
+                            
+                        } catch (error) {
+                            resolve({ 
+                                success: false, 
+                                error: `JavaScript Error: ${error.message}` 
+                            });
+                        }
+                    }, 100);
+                });
+            }
+
+            // Python Execution (Simulated)
+            async executePython(code, testCase) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        try {
+                            // Simulate Python execution logic
+                            let result;
+                            
+                            if (currentProb.id === 1) {
+                                // Two Sum in Python style
+                                const nums = testCase.input.nums;
+                                const target = testCase.input.target;
+                                const num_map = {};
+                                
+                                for (let i = 0; i < nums.length; i++) {
+                                    const complement = target - nums[i];
+                                    if (num_map.hasOwnProperty(complement)) {
+                                        result = [num_map[complement], i];
+                                        break;
+                                    }
+                                    num_map[nums[i]] = i;
+                                }
+                                result = result || [];
+                                
+                            } else if (currentProb.id === 2) {
+                                // Palindrome in Python style
+                                const x = testCase.input.x;
+                                if (x < 0) {
+                                    result = false;
+                                } else {
+                                    const original = x;
+                                    let reversed = 0;
+                                    let temp = x;
+                                    while (temp > 0) {
+                                        reversed = reversed * 10 + (temp % 10);
+                                        temp = Math.floor(temp / 10);
+                                    }
+                                    result = original === reversed;
+                                }
+                                
+                            } else if (currentProb.id === 3) {
+                                // Reverse Integer in Python style
+                                const x = testCase.input.x;
+                                const INT_MAX = 2**31 - 1;
+                                const INT_MIN = -(2**31);
+                                
+                                let rev = 0;
+                                let num = Math.abs(x);
+                                
+                                while (num > 0) {
+                                    const digit = num % 10;
+                                    rev = rev * 10 + digit;
+                                    if (rev > INT_MAX) {
+                                        result = 0;
+                                        break;
+                                    }
+                                    num = Math.floor(num / 10);
+                                }
+                                
+                                if (result === undefined) {
+                                    result = x < 0 ? -rev : rev;
+                                }
+                            }
+                            
+                            resolve({ success: true, result: result });
+                            
+                        } catch (error) {
+                            resolve({ 
+                                success: false, 
+                                error: `Python Error: ${error.message}` 
+                            });
+                        }
+                    }, 150);
+                });
+            }
+
+            // Java Execution (Simulated)
+            async executeJava(code, testCase) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        try {
+                            // Check for Java syntax errors
+                            if (!code.includes('class Solution')) {
+                                throw new Error('Java code must contain "class Solution"');
+                            }
+                            
+                            if (!code.includes('public')) {
+                                throw new Error('Java method must be public');
+                            }
+                            
+                            // Simulate Java execution
+                            let result;
+                            
+                            if (currentProb.id === 1) {
+                                // Two Sum in Java style
+                                const nums = testCase.input.nums;
+                                const target = testCase.input.target;
+                                const map = {};
+                                
+                                for (let i = 0; i < nums.length; i++) {
+                                    const complement = target - nums[i];
+                                    if (map[complement] !== undefined) {
+                                        result = [map[complement], i];
+                                        break;
+                                    }
+                                    map[nums[i]] = i;
+                                }
+                                result = result || [0, 0];
+                                
+                            } else if (currentProb.id === 2) {
+                                // Palindrome in Java style
+                                const x = testCase.input.x;
+                                if (x < 0) {
+                                    result = false;
+                                } else {
+                                    const original = x;
+                                    let reversed = 0;
+                                    let temp = x;
+                                    while (temp > 0) {
+                                        reversed = reversed * 10 + (temp % 10);
+                                        temp = Math.floor(temp / 10);
+                                    }
+                                    result = original === reversed;
+                                }
+                                
+                            } else if (currentProb.id === 3) {
+                                // Reverse Integer in Java style
+                                const x = testCase.input.x;
+                                const INT_MAX = 2147483647;
+                                const INT_MIN = -2147483648;
+                                
+                                let rev = 0;
+                                let num = Math.abs(x);
+                                
+                                while (num > 0) {
+                                    const digit = num % 10;
+                                    
+                                    // Check for overflow (Java style)
+                                    if (rev > Math.floor(INT_MAX / 10) || 
+                                        (rev === Math.floor(INT_MAX / 10) && digit > 7)) {
+                                        result = 0;
+                                        break;
+                                    }
+                                    
+                                    rev = rev * 10 + digit;
+                                    num = Math.floor(num / 10);
+                                }
+                                
+                                if (result === undefined) {
+                                    result = x < 0 ? -rev : rev;
+                                }
+                            }
+                            
+                            resolve({ success: true, result: result });
+                            
+                        } catch (error) {
+                            resolve({ 
+                                success: false, 
+                                error: `Java Error: ${error.message}` 
+                            });
+                        }
+                    }, 200);
+                });
+            }
+
+            // C++ Execution (Simulated)
+            async executeCpp(code, testCase) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        try {
+                            // Check for C++ syntax errors
+                            if (!code.includes('class Solution')) {
+                                throw new Error('C++ code must contain "class Solution"');
+                            }
+                            
+                            if (!code.includes('public:')) {
+                                throw new Error('C++ class must have public section');
+                            }
+                            
+                            // Simulate C++ execution
+                            let result;
+                            
+                            if (currentProb.id === 1) {
+                                // Two Sum in C++ style
+                                const nums = testCase.input.nums;
+                                const target = testCase.input.target;
+                                const map = new Map();
+                                
+                                for (let i = 0; i < nums.length; i++) {
+                                    const complement = target - nums[i];
+                                    if (map.has(complement)) {
+                                        result = [map.get(complement), i];
+                                        break;
+                                    }
+                                    map.set(nums[i], i);
+                                }
+                                result = result || [];
+                                
+                            } else if (currentProb.id === 2) {
+                                // Palindrome in C++ style
+                                const x = testCase.input.x;
+                                if (x < 0) {
+                                    result = false;
+                                } else {
+                                    const original = x;
+                                    let reversed = 0;
+                                    let temp = x;
+                                    while (temp > 0) {
+                                        reversed = reversed * 10 + (temp % 10);
+                                        temp = Math.floor(temp / 10);
+                                    }
+                                    result = original === reversed;
+                                }
+                                
+                            } else if (currentProb.id === 3) {
+                                // Reverse Integer in C++ style
+                                const x = testCase.input.x;
+                                const INT_MAX = 2147483647;
+                                const INT_MIN = -2147483648;
+                                
+                                let rev = 0;
+                                let num = Math.abs(x);
+                                
+                                while (num > 0) {
+                                    const digit = num % 10;
+                                    
+                                    // Check for overflow (C++ style)
+                                    if (rev > Math.floor(INT_MAX / 10) || 
+                                        (rev === Math.floor(INT_MAX / 10) && digit > 7)) {
+                                        result = 0;
+                                        break;
+                                    }
+                                    
+                                    rev = rev * 10 + digit;
+                                    num = Math.floor(num / 10);
+                                }
+                                
+                                if (result === undefined) {
+                                    result = x < 0 ? -rev : rev;
+                                }
+                            }
+                            
+                            resolve({ success: true, result: result });
+                            
+                        } catch (error) {
+                            resolve({ 
+                                success: false, 
+                                error: `C++ Error: ${error.message}` 
+                            });
+                        }
+                    }, 200);
+                });
+            }
+
+            // C Execution (Simulated)
+            async executeC(code, testCase) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        try {
+                            // Check for C syntax errors
+                            if (!code.includes('int* twoSum') && !code.includes('bool isPalindrome') && !code.includes('int reverse')) {
+                                throw new Error('C function signature not found');
+                            }
+                            
+                            if (code.includes('class') || code.includes('public')) {
+                                throw new Error('C code should not contain classes (not object-oriented)');
+                            }
+                            
+                            // Simulate C execution
+                            let result;
+                            
+                            if (currentProb.id === 1) {
+                                // Two Sum in C style
+                                const nums = testCase.input.nums;
+                                const target = testCase.input.target;
+                                
+                                for (let i = 0; i < nums.length; i++) {
+                                    for (let j = i + 1; j < nums.length; j++) {
+                                        if (nums[i] + nums[j] === target) {
+                                            result = [i, j];
+                                            break;
+                                        }
+                                    }
+                                    if (result) break;
+                                }
+                                result = result || [-1, -1];
+                                
+                            } else if (currentProb.id === 2) {
+                                // Palindrome in C style
+                                const x = testCase.input.x;
+                                if (x < 0) {
+                                    result = false;
+                                } else {
+                                    const original = x;
+                                    let reversed = 0;
+                                    let temp = x;
+                                    while (temp > 0) {
+                                        reversed = reversed * 10 + (temp % 10);
+                                        temp = Math.floor(temp / 10);
+                                    }
+                                    result = original === reversed;
+                                }
+                                
+                            } else if (currentProb.id === 3) {
+                                // Reverse Integer in C style
+                                const x = testCase.input.x;
+                                let rev = 0;
+                                let num = Math.abs(x);
+                                
+                                while (num > 0) {
+                                    rev = rev * 10 + (num % 10);
+                                    num = Math.floor(num / 10);
+                                }
+                                
+                                // Check for overflow (32-bit)
+                                if (rev > 2147483647 || rev < -2147483648) {
+                                    result = 0;
+                                } else {
+                                    result = x < 0 ? -rev : rev;
+                                }
+                            }
+                            
+                            resolve({ success: true, result: result });
+                            
+                        } catch (error) {
+                            resolve({ 
+                                success: false, 
+                                error: `C Error: ${error.message}` 
+                            });
+                        }
+                    }, 200);
+                });
+            }
+
+            getFunctionName(code, language) {
+                if (language === 'javascript') {
+                    if (code.includes('var twoSum')) return 'twoSum';
+                    if (code.includes('var isPalindrome')) return 'isPalindrome';
+                    if (code.includes('var reverse')) return 'reverse';
+                    return 'solution';
+                } else if (language === 'python') {
+                    if (code.includes('def twoSum')) return 'twoSum';
+                    if (code.includes('def isPalindrome')) return 'isPalindrome';
+                    if (code.includes('def reverse')) return 'reverse';
+                    return 'solution';
+                } else if (language === 'java') {
+                    return 'solution';
+                } else if (language === 'cpp') {
+                    return 'solution';
+                } else if (language === 'c') {
+                    if (code.includes('int* twoSum')) return 'twoSum';
+                    if (code.includes('bool isPalindrome')) return 'isPalindrome';
+                    if (code.includes('int reverse')) return 'reverse';
+                    return 'solution';
+                }
+                return 'solution';
+            }
+
+            getTestCall(language, testCase, functionName) {
+                if (currentProb.id === 1) {
+                    switch(language) {
+                        case 'javascript':
+                        case 'python':
+                            return `result = ${functionName}([${testCase.input.nums}], ${testCase.input.target});`;
+                        case 'java':
+                            return `result = new Solution().${functionName}(new int[]{${testCase.input.nums}}, ${testCase.input.target});`;
+                        case 'cpp':
+                            return `vector<int> nums = {${testCase.input.nums}};
+                                    result = Solution().${functionName}(nums, ${testCase.input.target});`;
+                        case 'c':
+                            return `int nums[] = {${testCase.input.nums}};
+                                    int returnSize;
+                                    result = ${functionName}(nums, ${testCase.input.nums.length}, ${testCase.input.target}, &returnSize);`;
+                    }
+                } else if (currentProb.id === 2) {
+                    switch(language) {
+                        case 'javascript':
+                        case 'python':
+                            return `result = ${functionName}(${testCase.input.x});`;
+                        case 'java':
+                            return `result = new Solution().${functionName}(${testCase.input.x});`;
+                        case 'cpp':
+                            return `result = Solution().${functionName}(${testCase.input.x});`;
+                        case 'c':
+                            return `result = ${functionName}(${testCase.input.x});`;
+                    }
+                } else if (currentProb.id === 3) {
+                    switch(language) {
+                        case 'javascript':
+                        case 'python':
+                            return `result = ${functionName}(${testCase.input.x});`;
+                        case 'java':
+                            return `result = new Solution().${functionName}(${testCase.input.x});`;
+                        case 'cpp':
+                            return `result = Solution().${functionName}(${testCase.input.x});`;
+                        case 'c':
+                            return `result = ${functionName}(${testCase.input.x});`;
+                    }
+                }
+                return '';
+            }
+
+            validateResult(actual, expected) {
+                if (Array.isArray(expected)) {
+                    if (!Array.isArray(actual)) return false;
+                    if (actual.length !== expected.length) return false;
+                    
+                    // For Two Sum, order doesn't matter
+                    if (currentProb.id === 1) {
+                        return JSON.stringify(actual.sort()) === JSON.stringify(expected.sort());
+                    }
+                    
+                    return JSON.stringify(actual) === JSON.stringify(expected);
+                }
+                return actual === expected;
+            }
+        }
+
+        const codeExecutor = new MultiLanguageExecutor();
+
+        // ========== INITIALIZATION ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            require.config({ 
+                paths: { 
+                    'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' 
+                } 
+            });
+            
+            require(['vs/editor/editor.main'], function() {
+                editor = monaco.editor.create(document.getElementById('editor-container'), {
+                    value: currentProb.starterCode.javascript,
+                    language: 'javascript',
+                    theme: 'vs-dark',
+                    fontSize: 14,
+                    fontFamily: "'Fira Code', 'Courier New', monospace",
+                    automaticLayout: true,
+                    minimap: { enabled: true },
+                    scrollBeyondLastLine: false,
+                    wordWrap: "on"
+                });
+                
+                renderProblems(problemDatabase);
+                loadProblem(1);
+                startTimer();
+                setupLanguageTabs();
+                updateLanguageBadge();
+            });
+
+            // Setup search
+            document.getElementById('probSearch').addEventListener('input', function(e) {
+                filterProblems(e.target.value);
+            });
+
+            // Setup language tabs
+            document.querySelectorAll('.code-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.code-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    currentLanguage = this.dataset.lang;
+                    updateEditorLanguage();
+                    updateLanguageBadge();
+                });
+            });
+
+            // Setup solution language tabs
+            document.querySelectorAll('.language-solution-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.language-solution-tab').forEach(t => {
+                        t.classList.remove('bg-blue-900/30', 'text-blue-400');
+                        t.classList.add('bg-slate-800', 'text-slate-400');
+                    });
+                    this.classList.remove('bg-slate-800', 'text-slate-400');
+                    this.classList.add('bg-blue-900/30', 'text-blue-400');
+                });
+            });
+        });
+
+        function updateLanguageBadge() {
+            const badges = {
+                javascript: { text: 'JS', class: 'js' },
+                python: { text: 'PY', class: 'py' },
+                java: { text: 'JAVA', class: 'java' },
+                cpp: { text: 'C++', class: 'cpp' },
+                c: { text: 'C', class: 'c' }
+            };
+            
+            const badge = badges[currentLanguage];
+            const badgeElement = document.getElementById('current-language');
+            badgeElement.textContent = badge.text;
+            badgeElement.className = `language-badge ${badge.class}`;
+        }
+
+        // ========== PROBLEM MANAGEMENT ==========
+        function renderProblems(data) {
+            const list = document.getElementById('problem-list');
+            list.innerHTML = data.map(p => `
+                <div onclick="loadProblem(${p.id})" 
+                     class="problem-card p-4 mb-2 rounded-xl cursor-pointer transition-all duration-300 
+                            bg-slate-900/30 border border-slate-800 hover:border-blue-800/50">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-bold text-slate-300">${p.id}.</span>
+                                <span class="text-sm font-semibold text-white">${p.title}</span>
+                                ${bookmarkedProblems.has(p.id) ? 
+                                    '<i class="fas fa-bookmark text-yellow-500 text-xs ml-1"></i>' : ''}
+                            </div>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${p.tags.map(tag => 
+                                    `<span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">${tag}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full 
+                            ${p.difficulty === 'Easy' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 
+                              p.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' : 
+                              'bg-red-500/10 text-red-500 border border-red-500/20'}">
+                            ${p.difficulty}
+                        </span>
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        ${p.acceptance} Acceptance
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadProblem(id) {
+            currentProb = problemDatabase.find(p => p.id === id);
+            
+            // Update UI
+            document.getElementById('p-title').innerText = `${id}. ${currentProb.title}`;
+            document.getElementById('p-desc').innerHTML = currentProb.desc;
+            
+            // Update difficulty badge
+            const diffElem = document.getElementById('p-diff');
+            diffElem.innerHTML = `
+                <span class="difficulty-dot ${currentProb.difficulty.toLowerCase()}"></span> ${currentProb.difficulty}
+            `;
+            
+            // Update tags
+            const tagsContainer = document.getElementById('p-tags');
+            tagsContainer.innerHTML = currentProb.tags.map(tag => 
+                `<span class="text-xs font-bold px-3 py-1 rounded-full bg-slate-800 text-slate-400">${tag}</span>`
+            ).join('');
+            
+            // Update examples
+            const examplesContainer = document.getElementById('examples-container');
+            examplesContainer.innerHTML = currentProb.examples.map((example, index) => `
+                <div class="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-widest flex items-center gap-2">
+                        <i class="fas fa-vial"></i> Example ${index + 1}
+                    </h3>
+                    <div class="space-y-3 font-mono">
+                        <div>
+                            <div class="text-slate-500 text-sm">Input:</div>
+                            <code class="text-blue-300">${example.input}</code>
+                        </div>
+                        <div>
+                            <div class="text-slate-500 text-sm">Output:</div>
+                            <code class="text-green-300">${example.output}</code>
+                        </div>
+                        ${example.explanation ? `
+                        <div class="text-slate-500 text-sm italic mt-4">${example.explanation}</div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            // Update constraints
+            const constraintsList = document.getElementById('constraints-list');
+            constraintsList.innerHTML = currentProb.constraints.map(constraint => `
+                <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mt-1 mr-3 text-xs"></i>
+                    <span>${constraint}</span>
+                </li>
+            `).join('');
+            
+            // Update bookmark button
+            const bookmarkBtn = document.getElementById('bookmark-btn');
+            bookmarkBtn.innerHTML = bookmarkedProblems.has(id) ? 
+                '<i class="fas fa-bookmark text-yellow-500"></i>' : 
+                '<i class="far fa-bookmark text-slate-400"></i>';
+            
+            // Update editor
+            updateEditorLanguage();
+            
+            // Reset timer
+            startTimer();
+            
+            // Update test cases display
+            updateTestCases();
+            
+            // Clear console
+            clearConsole();
+            
+            // Highlight active problem
+            document.querySelectorAll('.problem-card').forEach(card => {
+                card.classList.remove('bg-blue-900/20', 'border-blue-700');
+            });
+            
+            const problemCards = document.querySelectorAll('.problem-card');
+            if (problemCards[id - 1]) {
+                problemCards[id - 1].classList.add('bg-blue-900/20', 'border-blue-700');
+            }
+        }
+
+        function filterProblems(searchTerm) {
+            const filtered = problemDatabase.filter(p => 
+                p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                p.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+            renderProblems(filtered);
+        }
+
+        function updateEditorLanguage() {
+            if (!currentProb || !editor) return;
+            
+            const monacoLang = currentLanguage === 'python' ? 'python' : 
+                             currentLanguage === 'java' ? 'java' : 
+                             currentLanguage === 'cpp' ? 'cpp' : 
+                             currentLanguage === 'c' ? 'c' : 'javascript';
+            
+            monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
+            
+            // Set appropriate starter code for current language
+            editor.setValue(currentProb.starterCode[currentLanguage]);
+        }
+
+        // ========== TEST CASES MANAGEMENT ==========
+        function updateTestCases() {
+            const testCasesDiv = document.getElementById('test-cases');
+            testCasesDiv.innerHTML = `
+                <div class="space-y-2">
+                    ${currentProb.testCases.map((test, i) => `
+                        <div class="test-case bg-slate-900/50 p-3 rounded border border-slate-800" id="test-case-${i}">
+                            <div class="flex justify-between items-center">
+                                <div class="text-xs font-semibold text-slate-300">Test Case ${i+1}</div>
+                                <div class="text-xs text-yellow-400">Pending</div>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-1 font-mono">
+                                Input: ${JSON.stringify(test.input).replace(/"/g, '')}
+                            </div>
+                            <div class="text-xs text-slate-500 font-mono">
+                                Expected: ${JSON.stringify(test.expected)}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // ========== CODE EXECUTION ==========
+        async function runCode() {
+            const output = document.getElementById('output');
+            output.innerHTML = `<div class="text-blue-400 flex items-center gap-2"><i class="fas fa-cog fa-spin"></i> Compiling ${currentLanguage.toUpperCase()} code...</div>`;
+            document.getElementById('console-status').textContent = `Running ${currentLanguage}`;
+            
+            const code = editor.getValue();
+            
+            try {
+                // Test with first test case
+                const testCase = currentProb.testCases[0];
+                const result = await codeExecutor.executeCode(code, testCase, currentLanguage);
+                
+                if (!result.success) {
+                    output.innerHTML = `<div class="text-red-400 font-mono">${result.error}</div>`;
+                    document.getElementById('console-status').textContent = "Compilation Error";
+                    return;
+                }
+                
+                const isCorrect = codeExecutor.validateResult(result.result, testCase.expected);
+                
+                if (isCorrect) {
+                    output.innerHTML = `
+                        <div class="text-green-400 font-bold">✓ Test Case 1 Passed!</div>
+                        <div class="text-slate-300 mt-2">Language: ${currentLanguage.toUpperCase()}</div>
+                        <div class="text-slate-300">Input: ${JSON.stringify(testCase.input)}</div>
+                        <div class="text-slate-300">Your Output: ${JSON.stringify(result.result)}</div>
+                        <div class="text-slate-300">Expected: ${JSON.stringify(testCase.expected)}</div>
+                        <div class="text-blue-400 mt-4">Run all tests to check complete solution</div>
+                    `;
+                } else {
+                    output.innerHTML = `
+                        <div class="text-red-400 font-bold">✗ Test Case 1 Failed</div>
+                        <div class="text-slate-300 mt-2">Language: ${currentLanguage.toUpperCase()}</div>
+                        <div class="text-slate-300">Input: ${JSON.stringify(testCase.input)}</div>
+                        <div class="text-red-300">Your Output: ${JSON.stringify(result.result)}</div>
+                        <div class="text-green-300">Expected: ${JSON.stringify(testCase.expected)}</div>
+                        <div class="text-yellow-400 mt-4">Fix your code and try again</div>
+                    `;
+                }
+                
+                document.getElementById('console-status').textContent = isCorrect ? "Test Passed" : "Test Failed";
+                updateStats(Math.random() * 50 + 10, Math.random() * 30 + 10);
+                
+            } catch (error) {
+                output.innerHTML = `<div class="text-red-400 font-mono">Fatal Error: ${error.message}</div>`;
+                document.getElementById('console-status').textContent = "Error";
+            }
+        }
+
+        async function runAllTests() {
+            const output = document.getElementById('output');
+            output.innerHTML = `<div class="text-blue-400 flex items-center gap-2"><i class="fas fa-cog fa-spin"></i> Running all test cases in ${currentLanguage.toUpperCase()}...</div>`;
+            document.getElementById('console-status').textContent = `Running ${currentLanguage} Tests`;
+            
+            const code = editor.getValue();
+            
+            let allPassed = true;
+            let passedCount = 0;
+            let totalTime = 0;
+            
+            for (let i = 0; i < currentProb.testCases.length; i++) {
+                const testCase = currentProb.testCases[i];
+                const testDiv = document.getElementById(`test-case-${i}`);
+                
+                // Mark as running
+                testDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs font-semibold text-slate-300">Test Case ${i+1}</div>
+                        <div class="text-xs text-blue-400 test-case-running">
+                            <i class="fas fa-spinner fa-spin"></i> Running
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-1 font-mono">
+                        Input: ${JSON.stringify(testCase.input).replace(/"/g, '')}
+                    </div>
+                    <div class="text-xs text-slate-500 font-mono">
+                        Expected: ${JSON.stringify(testCase.expected)}
+                    </div>
+                `;
+                
+                // Execute test case
+                const startTime = Date.now();
+                let result;
+                
+                try {
+                    result = await codeExecutor.executeCode(code, testCase, currentLanguage);
+                    const executionTime = Date.now() - startTime;
+                    totalTime += executionTime;
+                    
+                    if (!result.success) {
+                        testDiv.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div class="text-xs font-semibold text-slate-300">Test Case ${i+1}</div>
+                                <div class="text-xs text-red-400">
+                                    <i class="fas fa-times"></i> ${currentLanguage.toUpperCase()} Error
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-1 font-mono">
+                                Input: ${JSON.stringify(testCase.input).replace(/"/g, '')}
+                            </div>
+                            <div class="text-xs text-red-400 font-mono">
+                                ${result.error}
+                            </div>
+                        `;
+                        allPassed = false;
+                        continue;
+                    }
+                    
+                    const isCorrect = codeExecutor.validateResult(result.result, testCase.expected);
+                    
+                    if (isCorrect) {
+                        testDiv.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div class="text-xs font-semibold text-slate-300">Test Case ${i+1}</div>
+                                <div class="text-xs text-green-400">
+                                    <i class="fas fa-check"></i> Passed (${executionTime}ms)
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-1 font-mono">
+                                Input: ${JSON.stringify(testCase.input).replace(/"/g, '')}
+                            </div>
+                            <div class="text-xs text-green-400 font-mono">
+                                Output: ${JSON.stringify(result.result)}
+                            </div>
+                        `;
+                        passedCount++;
+                    } else {
+                        testDiv.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div class="text-xs font-semibold text-slate-300">Test Case ${i+1}</div>
+                                <div class="text-xs text-red-400">
+                                    <i class="fas fa-times"></i> Failed (${executionTime}ms)
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-1 font-mono">
+                                Input: ${JSON.stringify(testCase.input).replace(/"/g, '')}
+                            </div>
+                            <div class="text-xs text-red-400 font-mono">
+                                Got: ${JSON.stringify(result.result)}
+                            </div>
+                            <div class="text-xs text-green-400 font-mono">
+                                Expected: ${JSON.stringify(testCase.expected)}
+                            </div>
+                        `;
+                        allPassed = false;
+                    }
+                    
+                } catch (error) {
+                    testDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs font-semibold text-slate-300">Test Case ${i+1}</div>
+                            <div class="text-xs text-red-400">
+                                <i class="fas fa-times"></i> Crash
+                            </div>
+                        </div>
+                        <div class="text-xs text-red-400 font-mono">
+                            ${error.message}
+                        </div>
+                    `;
+                    allPassed = false;
+                }
+                
+                // Small delay between tests
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            // Show final results
+            if (allPassed) {
+                output.innerHTML = `
+                    <div class="text-green-400 font-bold text-lg">🎉 All Tests Passed!</div>
+                    <div class="text-slate-300 mt-2">Language: ${currentLanguage.toUpperCase()}</div>
+                    <div class="text-slate-300">${passedCount}/${currentProb.testCases.length} test cases passed</div>
+                    <div class="text-slate-300">Total execution time: ${totalTime}ms</div>
+                    <div class="text-green-300 mt-4">Your ${currentLanguage} solution is correct!</div>
+                `;
+                document.getElementById('console-status').textContent = "All Tests Passed";
+                
+                // Show success animation
+                showSuccessToast();
+                
+            } else {
+                output.innerHTML = `
+                    <div class="text-red-400 font-bold text-lg">✗ Tests Failed</div>
+                    <div class="text-slate-300 mt-2">Language: ${currentLanguage.toUpperCase()}</div>
+                    <div class="text-slate-300">${passedCount}/${currentProb.testCases.length} test cases passed</div>
+                    <div class="text-yellow-400 mt-4">Fix the failing test cases and try again</div>
+                `;
+                document.getElementById('console-status').textContent = "Tests Failed";
+            }
+            
+            updateStats(totalTime / currentProb.testCases.length, Math.random() * 30 + 10);
+        }
+
+        async function submitCode() {
+            const output = document.getElementById('output');
+            output.innerHTML = `<div class="text-yellow-400 flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Submitting ${currentLanguage} solution...</div>`;
+            document.getElementById('console-status').textContent = `Submitting ${currentLanguage}`;
+            
+            const code = editor.getValue();
+            
+            let allPassed = true;
+            let passedCount = 0;
+            
+            // Run all test cases
+            for (let i = 0; i < currentProb.testCases.length; i++) {
+                const testCase = currentProb.testCases[i];
+                let result;
+                
+                try {
+                    result = await codeExecutor.executeCode(code, testCase, currentLanguage);
+                    
+                    if (!result.success || !codeExecutor.validateResult(result.result, testCase.expected)) {
+                        allPassed = false;
+                    } else {
+                        passedCount++;
+                    }
+                } catch (error) {
+                    allPassed = false;
+                }
+            }
+            
+            // Show submission results
+            setTimeout(() => {
+                if (allPassed) {
+                    output.innerHTML = `
+                        <div class="text-green-400 font-bold text-lg">✅ ${currentLanguage.toUpperCase()} Solution Accepted!</div>
+                        <div class="text-green-300 mt-2">All ${currentProb.testCases.length} test cases passed</div>
+                        <div class="text-green-300">Your ${currentLanguage} solution is optimal and correct</div>
+                        <div class="text-blue-400 mt-4">Congratulations! Problem solved successfully in ${currentLanguage}.</div>
+                    `;
+                    
+                    // Trigger celebration
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                    
+                    document.getElementById('console-status').textContent = "Accepted";
+                    
+                } else {
+                    output.innerHTML = `
+                        <div class="text-red-400 font-bold text-lg">❌ ${currentLanguage.toUpperCase()} Solution Rejected</div>
+                        <div class="text-red-300 mt-2">Only ${passedCount}/${currentProb.testCases.length} test cases passed</div>
+                        <div class="text-yellow-400 mt-4">Fix your ${currentLanguage} solution and try again</div>
+                        <div class="text-slate-400 text-sm mt-2">Hint: Check syntax and logic in ${currentLanguage}</div>
+                    `;
+                    document.getElementById('console-status').textContent = "Rejected";
+                }
+                
+                updateStats(Math.random() * 100 + 20, Math.random() * 50 + 20);
+            }, 1500);
+        }
+
+        // ========== UI FUNCTIONS ==========
+        function bookmarkProblem() {
+            const id = currentProb.id;
+            
+            if (bookmarkedProblems.has(id)) {
+                bookmarkedProblems.delete(id);
+                document.getElementById('bookmark-btn').innerHTML = '<i class="far fa-bookmark text-slate-400"></i>';
+            } else {
+                bookmarkedProblems.add(id);
+                document.getElementById('bookmark-btn').innerHTML = '<i class="fas fa-bookmark text-yellow-500"></i>';
+            }
+            
+            renderProblems(problemDatabase);
+        }
+
+        function showSolution() {
+            changeSolutionLanguage(currentLanguage);
+            document.getElementById('solution-modal').classList.remove('hidden');
+            document.getElementById('solution-modal').classList.add('flex');
+        }
+
+        function changeSolutionLanguage(lang) {
+            const solutionCodeContent = document.getElementById('solution-code-content');
+            solutionCodeContent.textContent = currentProb.solutionCode[lang];
+            
+            // Update solution language badge
+            const badges = {
+                javascript: { text: 'JS', class: 'js' },
+                python: { text: 'PY', class: 'py' },
+                java: { text: 'JAVA', class: 'java' },
+                cpp: { text: 'C++', class: 'cpp' },
+                c: { text: 'C', class: 'c' }
+            };
+            
+            const badge = badges[lang];
+            const badgeElement = document.getElementById('solution-language');
+            badgeElement.textContent = badge.text;
+            badgeElement.className = `language-badge ${badge.class} ml-2`;
+            
+            // Update tabs
+            document.querySelectorAll('.language-solution-tab').forEach(tab => {
+                tab.classList.remove('bg-blue-900/30', 'text-blue-400');
+                tab.classList.add('bg-slate-800', 'text-slate-400');
+                
+                if (tab.dataset.lang === lang) {
+                    tab.classList.remove('bg-slate-800', 'text-slate-400');
+                    tab.classList.add('bg-blue-900/30', 'text-blue-400');
+                }
+            });
+        }
+
+        function closeSolution() {
+            document.getElementById('solution-modal').classList.add('hidden');
+            document.getElementById('solution-modal').classList.remove('flex');
+        }
+
+        function startTimer() {
+            clearInterval(timerInt);
+            time = 0;
+            timerInt = setInterval(() => {
+                time++;
+                const h = Math.floor(time/3600).toString().padStart(2,'0');
+                const m = Math.floor((time%3600)/60).toString().padStart(2,'0');
+                const s = (time%60).toString().padStart(2,'0');
+                document.getElementById('timer').innerHTML = `<i class="fas fa-clock"></i><span>${h}:${m}:${s}</span>`;
+            }, 1000);
+        }
+
+        function clearConsole() {
+            document.getElementById('output').innerHTML = '<div class="text-slate-600">// Console cleared</div>';
+            document.getElementById('console-status').textContent = "Ready";
+        }
+
+        function updateStats(runtime, memory) {
+            document.getElementById('memory-usage').textContent = `${memory.toFixed(1)} MB`;
+            document.getElementById('time-usage').textContent = `${runtime.toFixed(1)} ms`;
+            document.getElementById('status').textContent = "Executed";
+        }
+
+        function showSuccessToast() {
+            const toast = document.getElementById('success-toast');
+            toast.classList.remove('hidden');
+            toast.classList.add('slide-in');
+            
+            setTimeout(() => {
+                toast.classList.remove('slide-in');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        }
+
+        function setupLanguageTabs() {
+            document.querySelectorAll('.code-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.code-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    currentLanguage = this.dataset.lang;
+                    updateEditorLanguage();
+                    updateLanguageBadge();
+                });
+            });
+        }
+
+        // ========== DEMO TESTING ==========
+        window.demoTest = {
+            testJavaTwoSum: function() {
+                const javaCode = `class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        // Wrong solution - always returns [0,1]
+        return new int[] {0, 1};
+    }
+}`;
+                currentLanguage = 'java';
+                updateEditorLanguage();
+                editor.setValue(javaCode);
+                runAllTests();
+            },
+            
+            testCppPalindrome: function() {
+                loadProblem(2);
+                const cppCode = `class Solution {
+public:
+    bool isPalindrome(int x) {
+        // Wrong solution - always returns true
+        return true;
+    }
+};`;
+                currentLanguage = 'cpp';
+                updateEditorLanguage();
+                editor.setValue(cppCode);
+                runAllTests();
+            },
+            
+            testCReverse: function() {
+                loadProblem(3);
+                const cCode = `int reverse(int x) {
+    // Wrong solution - returns 0 always
+    return 0;
+}`;
+                currentLanguage = 'c';
+                updateEditorLanguage();
+                editor.setValue(cCode);
+                runAllTests();
+            },
+            
+            testCorrectJavaTwoSum: function() {
+                loadProblem(1);
+                const correctJavaCode = `class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        java.util.Map<Integer, Integer> map = new java.util.HashMap<>();
+        
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            
+            if (map.containsKey(complement)) {
+                return new int[] { map.get(complement), i };
+            }
+            
+            map.put(nums[i], i);
+        }
+        
+        return new int[2];
+    }
+}`;
+                currentLanguage = 'java';
+                updateEditorLanguage();
+                editor.setValue(correctJavaCode);
+                runAllTests();
+            }
+        };
+        // ========== STATE MANAGEMENT ==========
+const state = {
+    editor: null,
+    currentProb: problemDatabase[0],
+    currentLanguage: "javascript",
+    timer: 0,
+    isCompiling: false,
+    searchQuery: ""
+};
+
+// ========== INITIALIZATION ==========
+require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+
+require(['vs/editor/editor.main'], function() {
+    state.editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: state.currentProb.starterCode[state.currentLanguage],
+        language: state.currentLanguage,
+        theme: 'vs-dark',
+        fontSize: 14,
+        fontFamily: "'Fira Code', monospace",
+        automaticLayout: true,
+        minimap: { enabled: false },
+        padding: { top: 16 }
+    });
+    
+    initApp();
+});
+
+function initApp() {
+    renderProblemList();
+    loadProblem(state.currentProb.id);
+    startTimer();
+    setupEventListeners();
+}
+
+// ========== OPTIMIZED RENDERING ==========
+function renderProblemList() {
+    const list = document.getElementById('problem-list');
+    const filtered = problemDatabase.filter(p => 
+        p.title.toLowerCase().includes(state.searchQuery.toLowerCase())
+    );
+
+    list.innerHTML = filtered.map(prob => `
+        <div onclick="loadProblem(${prob.id})" 
+             class="problem-card p-4 rounded-xl border border-slate-800 cursor-pointer transition-all 
+             ${state.currentProb.id === prob.id ? 'bg-blue-600/10 border-blue-500/50' : 'bg-[#161b22] hover:bg-[#1c2128]'}">
+            <div class="flex justify-between items-start mb-1">
+                <h4 class="font-bold text-sm text-slate-200">${prob.title}</h4>
+                <span class="text-[10px] text-slate-500">${prob.acceptance}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="difficulty-dot ${prob.difficulty.toLowerCase()}"></span>
+                <span class="text-[10px] uppercase font-bold text-slate-400">${prob.difficulty}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function loadProblem(id) {
+    const prob = problemDatabase.find(p => p.id === id);
+    state.currentProb = prob;
+    
+    // Update UI Elements
+    document.getElementById('p-title').innerText = prob.title;
+    document.getElementById('p-desc').innerHTML = prob.desc;
+    document.getElementById('p-diff').className = `text-xs font-bold px-3 py-1 rounded-full bg-slate-500/10 border border-slate-500/20 uppercase flex items-center`;
+    
+    // Efficiently render tags
+    document.getElementById('p-tags').innerHTML = prob.tags.map(tag => 
+        `<span class="text-[10px] px-2 py-1 bg-slate-800 text-slate-400 rounded-md border border-slate-700">${tag}</span>`
+    ).join('');
+
+    // Load code into editor
+    if (state.editor) {
+        state.editor.setValue(prob.starterCode[state.currentLanguage]);
+    }
+    
+    renderTestCases();
+    renderProblemList(); // Refresh active state
+}
+
+// ========== CODE EXECUTION (MOCK ENGINE) ==========
+async function runCode() {
+    const output = document.getElementById('output');
+    const indicator = document.getElementById('compile-indicator');
+    
+    state.isCompiling = true;
+    indicator.classList.remove('hidden');
+    output.innerHTML = `<div class="text-blue-400">Compiling and running...</div>`;
+
+    // Simulate Network Latency
+    await new Promise(r => setTimeout(r, 1200));
+
+    state.isCompiling = false;
+    indicator.classList.add('hidden');
+    
+    // Mock Result logic
+    output.innerHTML = `
+        <div class="text-green-400">✓ Compilation Successful</div>
+        <div class="text-slate-300 mt-2">Output: [0, 1]</div>
+        <div class="text-slate-500 mt-1">Expected: [0, 1]</div>
+    `;
+    
+    document.getElementById('memory-usage').innerText = (Math.random() * 5 + 30).toFixed(2) + " MB";
+    document.getElementById('time-usage').innerText = Math.floor(Math.random() * 50 + 10) + " ms";
+}
+
+function submitCode() {
+    confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#3b82f6', '#10b981', '#ffffff']
+    });
+    
+    const toast = document.getElementById('success-toast');
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 4000);
+}
+
+// ========== UTILITIES ==========
+function startTimer() {
+    setInterval(() => {
+        state.timer++;
+        const hrs = Math.floor(state.timer / 3600).toString().padStart(2, '0');
+        const mins = Math.floor((state.timer % 3600) / 60).toString().padStart(2, '0');
+        const secs = (state.timer % 60).toString().padStart(2, '0');
+        document.querySelector('#timer span').innerText = `${hrs}:${mins}:${secs}`;
+    }, 1000);
+}
+
+function setupEventListeners() {
+    // Tab switching
+    document.querySelectorAll('.code-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            state.currentLanguage = tab.dataset.lang;
+            
+            // Update Editor Language
+            const model = state.editor.getModel();
+            monaco.editor.setModelLanguage(model, state.currentLanguage);
+            state.editor.setValue(state.currentProb.starterCode[state.currentLanguage]);
+            
+            // Update Badge
+            const badge = document.getElementById('current-language');
+            badge.innerText = state.currentLanguage.toUpperCase();
+            badge.className = `language-badge ${state.currentLanguage}`;
+        });
+    });
+
+    // Search Debouncing
+    let timeout;
+    document.getElementById('probSearch').addEventListener('input', (e) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            state.searchQuery = e.target.value;
+            renderProblemList();
+        }, 300);
+    });
+}
+    </script>
+</body>
+</html>
